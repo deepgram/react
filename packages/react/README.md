@@ -288,6 +288,10 @@ export type {
 };
 ```
 
+## Migration
+
+See the [0.1 to 0.2 migration guide](https://github.com/deepgram/react/blob/main/MIGRATION.md) when upgrading an existing integration.
+
 ## License
 
 MIT
