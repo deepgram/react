@@ -1,12 +1,12 @@
 // Provider
 export { AgentProvider } from "./provider.js";
-export type { AgentProviderProps } from "./provider.js";
+export type { AgentNotificationCallbacks, AgentProviderProps } from "./provider.js";
 
 // Context (escape hatch)
 export { useAgentContext } from "./context.js";
 export type { AgentContextValue, ConversationEntry, AgentMode } from "./context.js";
 
-// Focused hooks — each subscribes to a specific state slice
+// Focused hooks — convenient API slices backed by AgentContext
 export { useAgentState }        from "./hooks/useAgentState.js";
 export { useAgentConversation } from "./hooks/useAgentConversation.js";
 export { useAgentMicrophone }   from "./hooks/useAgentMicrophone.js";
@@ -32,7 +32,32 @@ export type {
   AuthConfig,
   TokenFactory,
   AgentSettingsObject,
+  AgentMessageBehavior,
+  ListenSettings,
   ThinkSettings,
+  ThinkProvider,
   SpeakSettings,
+  SpeakProvider,
   MicrophoneOptions,
+  AgentSessionEvents,
+  AgentState,
+  WelcomeMessage,
+  SettingsAppliedMessage,
+  ConversationTextMessage,
+  UserStartedSpeakingMessage,
+  AgentThinkingMessage,
+  FunctionCallRequestMessage,
+  FunctionCallItem,
+  AgentStartedSpeakingMessage,
+  AgentAudioDoneMessage,
+  PromptUpdatedMessage,
+  SpeakUpdatedMessage,
+  ThinkUpdatedMessage,
+  ListenUpdatedMessage,
+  LatencyReportMessage,
+  HistoryMessage,
+  InjectionRefusedMessage,
+  AgentErrorMessage,
+  AgentWarningMessage,
+  ServerMessage,
 } from "@deepgram/agents";

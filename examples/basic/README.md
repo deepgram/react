@@ -20,4 +20,4 @@ This example is a standalone React component. To use it in your project:
 - Wrapping your app with `AgentProvider`
 - Using `useAgentState` for connection lifecycle (`start`/`stop`)
 - Using `useAgentConversation` for transcript display and text messaging
-- Using `useAgentMode` for speaking/listening state
+- Using `useAgentMode` for listening, thinking, and speaking mode tracking

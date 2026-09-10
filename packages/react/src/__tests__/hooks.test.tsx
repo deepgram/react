@@ -1,16 +1,18 @@
 import React from "react";
-import { describe, it, expect, beforeEach } from "bun:test";
-import { renderHook, act } from "@testing-library/react";
+import { describe, it, expect, beforeEach, jest } from "bun:test";
+import { render, renderHook, act, waitFor } from "@testing-library/react";
 
 // Install mocks before importing hooks
 import { resetMocks, lastSession } from "./helpers/mock-sdk.js";
-import { createWrapper } from "./helpers/test-wrapper.js";
+import { createWrapper, TestProvider } from "./helpers/test-wrapper.js";
 
 const { useAgentState } = await import("../hooks/useAgentState.js");
 const { useAgentConversation } = await import("../hooks/useAgentConversation.js");
 const { useAgentMicrophone } = await import("../hooks/useAgentMicrophone.js");
 const { useAgentPlayer } = await import("../hooks/useAgentPlayer.js");
 const { useAgentSession } = await import("../hooks/useAgentSession.js");
+const { useAgentControls } = await import("../hooks/useAgentControls.js");
+const { useAgentClientTool } = await import("../hooks/useAgentClientTool.js");
 const { useAgentContext } = await import("../context.js");
 
 describe("useAgentState", () => {
@@ -104,8 +106,103 @@ describe("useAgentConversation", () => {
     });
 
     expect(result.current.conversation).toEqual([]);
+    expect(lastSession.clearConversationHistory).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("useAgentControls", () => {
+  beforeEach(resetMocks);
+
+  it("exposes current agent message and settings controls", () => {
+    const { result } = renderHook(() => useAgentControls(), {
+      wrapper: createWrapper(),
+    });
+    const listen = { provider: { type: "deepgram", model: "flux-general-en" } };
+    const think = { provider: { type: "open_ai", model: "gpt-4o" } };
+    const speak = { provider: { type: "deepgram", model: "aura-2-thalia-en" } };
+
+    act(() => {
+      result.current.sendAgentMessage("One moment", "interrupt");
+      result.current.updateListen(listen);
+      result.current.updateThink(think);
+      result.current.updateSpeak(speak);
+      result.current.updatePrompt("Updated prompt");
+    });
+
+    expect(lastSession.injectAgentMessage).toHaveBeenCalledWith("One moment", "interrupt");
+    expect(lastSession.updateListen).toHaveBeenCalledWith(listen);
+    expect(lastSession.updateThink).toHaveBeenCalledWith(think);
+    expect(lastSession.updateSpeak).toHaveBeenCalledWith(speak);
+    expect(lastSession.updatePrompt).toHaveBeenCalledWith("Updated prompt");
+  });
+});
+
+describe("useAgentClientTool", () => {
+  beforeEach(resetMocks);
+
+  it("handles function calls using fn.arguments", async () => {
+    renderHook(
+      () => useAgentClientTool("lookup", (fn) => fn.arguments),
+      { wrapper: createWrapper() },
+    );
+
+    act(() => {
+      lastSession.emit("function-call-request", {
+        type: "FunctionCallRequest",
+        functions: [{ id: "tool-1", name: "lookup", arguments: "{\"city\":\"Paris\"}", client_side: true }],
+      });
+    });
+
+    await waitFor(() => {
+      expect(lastSession.sendFunctionCallResponse).toHaveBeenCalledWith(
+        "tool-1",
+        "lookup",
+        "{\"city\":\"Paris\"}",
+      );
+    });
+  });
+
+  it("does not let an older duplicate registration remove the newer handler", async () => {
+    const first = jest.fn(() => "first");
+    const second = jest.fn(() => "second");
+    const { rerender } = render(
+      <TestProvider>
+        <ToolRegistration key="first" handler={first} />
+        <ToolRegistration key="second" handler={second} />
+      </TestProvider>,
+    );
+
+    rerender(
+      <TestProvider>
+        <ToolRegistration key="second" handler={second} />
+      </TestProvider>,
+    );
+    act(() => {
+      lastSession.emit("function-call-request", {
+        type: "FunctionCallRequest",
+        functions: [{ id: "tool-2", name: "lookup", arguments: "{}", client_side: true }],
+      });
+    });
+
+    await waitFor(() => {
+      expect(lastSession.sendFunctionCallResponse).toHaveBeenCalledWith(
+        "tool-2",
+        "lookup",
+        "second",
+      );
+    });
+    expect(first).not.toHaveBeenCalled();
+  });
+});
+
+function ToolRegistration({
+  handler,
+}: {
+  handler: () => string;
+}) {
+  useAgentClientTool("lookup", handler);
+  return null;
+}
 
 describe("useAgentMicrophone", () => {
   beforeEach(resetMocks);

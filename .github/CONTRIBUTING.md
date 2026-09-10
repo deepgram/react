@@ -5,12 +5,12 @@ Thanks for your interest in contributing to `@deepgram/react`!
 ## Prerequisites
 
 - [Bun](https://bun.sh/) 1.3+
-- [`deepgram/agent`](https://github.com/deepgram/agent) cloned as a sibling directory (`../agent`)
+- Optional: a [`deepgram/agent`](https://github.com/deepgram/agent) sibling checkout (`../agent`) for coordinated local development
 
 ## Setup
 
 ```bash
-# Clone the agent SDK (required -- @deepgram/react depends on it via file: pointer)
+# Optional: clone and build the sibling agent SDK used by the local TypeScript path mapping
 git clone git@github.com:deepgram/agent.git ../agent
 cd ../agent && bun install && bun run build
 cd -
@@ -20,6 +20,9 @@ git clone git@github.com:deepgram/react.git
 cd react
 bun install
 ```
+
+The project intentionally uses TypeScript 5.9.3 until `vite-plugin-dts` bundles
+an API Extractor release that supports TypeScript 6.x.
 
 ## Development
 

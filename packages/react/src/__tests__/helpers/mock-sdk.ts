@@ -24,39 +24,88 @@ export class MockAgentSession extends EventEmitter {
   sendFunctionCallResponse = jest.fn();
   injectUserMessage = jest.fn();
   injectAgentMessage = jest.fn();
+  updateListen = jest.fn();
   updateSpeak = jest.fn();
   updateThink = jest.fn();
   updatePrompt = jest.fn();
+  clearConversationHistory = jest.fn(() => {
+    this.conversationHistory.length = 0;
+  });
 }
+
+let nextMicrophoneStartError: Error | null = null;
+let nextMicrophoneStartDeferred: Promise<void> | null = null;
 
 export class MockAgentMicrophone {
   muted = false;
-  start = jest.fn(async () => {});
+  start = jest.fn(async () => {
+    if (nextMicrophoneStartDeferred) {
+      const deferred = nextMicrophoneStartDeferred;
+      nextMicrophoneStartDeferred = null;
+      await deferred;
+    }
+    if (nextMicrophoneStartError) {
+      const error = nextMicrophoneStartError;
+      nextMicrophoneStartError = null;
+      throw error;
+    }
+  });
   stop = jest.fn();
   mute = jest.fn(() => { this.muted = true; });
   unmute = jest.fn(() => { this.muted = false; });
+  getInputVolume = jest.fn(() => 0);
+  getInputByteFrequencyData = jest.fn(() => new Uint8Array(0));
   on = jest.fn();
   off = jest.fn();
 }
 
 export class MockAgentPlayer {
   muted = false;
-  queue = jest.fn();
+  disposed = false;
+  queue = jest.fn(() => {
+    if (this.disposed) throw new Error("cannot queue on a disposed player");
+  });
   interrupt = jest.fn();
   mute = jest.fn(() => { this.muted = true; });
   unmute = jest.fn(() => { this.muted = false; });
-  dispose = jest.fn();
+  setVolume = jest.fn();
+  getOutputVolume = jest.fn(() => 0);
+  getOutputByteFrequencyData = jest.fn(() => new Uint8Array(0));
+  getRemainingPlaybackTime = jest.fn(() => 0);
+  dispose = jest.fn(() => { this.disposed = true; });
 }
 
 // Track instances created so tests can access them
 export let lastSession: MockAgentSession;
 export let lastMicrophone: MockAgentMicrophone;
 export let lastPlayer: MockAgentPlayer;
+export const sessions: MockAgentSession[] = [];
+export const microphones: MockAgentMicrophone[] = [];
+export const players: MockAgentPlayer[] = [];
+
+export function failNextMicrophoneStart(error: Error) {
+  nextMicrophoneStartError = error;
+}
+
+export function deferNextMicrophoneStart() {
+  let resolve!: () => void;
+  let reject!: (error: Error) => void;
+  nextMicrophoneStartDeferred = new Promise<void>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { resolve, reject };
+}
 
 export function resetMocks() {
   lastSession = undefined!;
   lastMicrophone = undefined!;
   lastPlayer = undefined!;
+  sessions.length = 0;
+  microphones.length = 0;
+  players.length = 0;
+  nextMicrophoneStartError = null;
+  nextMicrophoneStartDeferred = null;
 }
 
 // Install module-level mock
@@ -65,18 +114,21 @@ mock.module("@deepgram/agents", () => ({
     constructor(...args: unknown[]) {
       super();
       lastSession = this as unknown as MockAgentSession;
+      sessions.push(lastSession);
     }
   },
   AgentMicrophone: class extends MockAgentMicrophone {
     constructor(...args: unknown[]) {
       super();
       lastMicrophone = this as unknown as MockAgentMicrophone;
+      microphones.push(lastMicrophone);
     }
   },
   AgentPlayer: class extends MockAgentPlayer {
     constructor(...args: unknown[]) {
       super();
       lastPlayer = this as unknown as MockAgentPlayer;
+      players.push(lastPlayer);
     }
   },
 }));

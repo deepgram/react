@@ -9,7 +9,7 @@ const { AgentProvider } = await import("../../provider.js");
 
 const DEFAULT_CONFIG = {
   auth: { apiKey: "test-key" },
-  agent: { think: { type: "open_ai" as const, model: "gpt-4o-mini" } },
+  agent: { think: { provider: { type: "open_ai" as const, model: "gpt-4o-mini" } } },
 };
 
 /**

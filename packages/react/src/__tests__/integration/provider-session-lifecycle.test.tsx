@@ -77,7 +77,10 @@ describe("Integration: Provider ↔ Session lifecycle", () => {
     expect(lastSession.disconnect).toHaveBeenCalled();
 
     // 7. Unmount → full cleanup
-    unmount();
+    await act(async () => {
+      unmount();
+      await Promise.resolve();
+    });
     expect(lastSession.eventNames()).toHaveLength(0);
     expect(lastPlayer.dispose).toHaveBeenCalled();
   });

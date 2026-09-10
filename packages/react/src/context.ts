@@ -1,6 +1,13 @@
 import { createContext, useContext } from "react";
-import type { AgentSession, AgentState } from "@deepgram/agents";
-import type { FunctionCallItem } from "@deepgram/agents";
+import type {
+  AgentMessageBehavior,
+  AgentSession,
+  AgentState,
+  FunctionCallItem,
+  ListenSettings,
+  SpeakSettings,
+  ThinkSettings,
+} from "@deepgram/agents";
 
 export interface ConversationEntry {
   id: string;
@@ -9,7 +16,7 @@ export interface ConversationEntry {
   timestamp: number; // ms epoch
 }
 
-export type AgentMode = "idle" | "listening" | "speaking";
+export type AgentMode = "idle" | "listening" | "thinking" | "speaking";
 
 export interface AgentContextValue {
   // Raw session — escape hatch for anything not exposed here
@@ -20,15 +27,23 @@ export interface AgentContextValue {
   start: () => Promise<void>;
   stop: () => void;
 
-  // Mode (speaking / listening)
+  // Mode (speaking / listening / thinking)
   mode: AgentMode;
   isSpeaking: boolean;
   isListening: boolean;
+  isThinking: boolean;
 
   // Conversation
   conversation: ConversationEntry[];
   clearConversation: () => void;
   sendUserMessage: (text: string) => void;
+  sendAgentMessage: (message: string, behavior?: AgentMessageBehavior) => void;
+
+  // Runtime settings
+  updateListen: (listen: ListenSettings) => void;
+  updateThink: (think: ThinkSettings | ThinkSettings[]) => void;
+  updateSpeak: (speak: SpeakSettings | SpeakSettings[]) => void;
+  updatePrompt: (prompt: string) => void;
 
   // Microphone
   micActive: boolean;
@@ -46,7 +61,7 @@ export interface AgentContextValue {
   getOutputVolume: () => number;
 
   // Client tools — dynamic registration
-  registerClientTool: (name: string, handler: (fn: FunctionCallItem) => Promise<string> | string) => void;
+  registerClientTool: (name: string, handler: (fn: FunctionCallItem) => Promise<string> | string) => () => void;
   unregisterClientTool: (name: string) => void;
 }
 

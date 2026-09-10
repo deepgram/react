@@ -22,7 +22,7 @@ function App() {
     <AgentProvider
       config={{
         auth: { tokenFactory: () => fetch('/api/deepgram-token').then(r => r.text()) },
-        agent: { think: { provider: { type: 'open_ai' }, model: 'gpt-4o-mini' } },
+        agent: { think: { provider: { type: 'open_ai', model: 'gpt-4o-mini' } } },
       }}
     >
       <VoiceAgent />
@@ -33,10 +33,17 @@ function App() {
 function VoiceAgent() {
   const { state, start, stop } = useAgentState();
   const { conversation } = useAgentConversation();
+  const handleStart = async () => {
+    try {
+      await start();
+    } catch (error) {
+      console.error("Failed to start voice agent", error);
+    }
+  };
 
   return (
     <div>
-      <button onClick={state === "idle" ? start : stop}>
+      <button onClick={state === "idle" ? handleStart : stop}>
         {state === "idle" ? "Start" : "Stop"}
       </button>
       {conversation.map((entry) => (
@@ -47,16 +54,18 @@ function VoiceAgent() {
 }
 ```
 
+`config`, `playerSampleRate`, and the initial `autoStart` value establish the provider session for that component lifetime. Use the runtime update methods for supported listen, think, speak, and prompt changes rather than changing `config` in place.
+
 ## Hooks
 
 | Hook | Purpose |
 |------|---------|
 | `useAgentState` | Connection state (`idle`, `connecting`, `connected`, etc.) and `start`/`stop` controls |
-| `useAgentMode` | Speaking/listening mode tracking |
-| `useAgentConversation` | Conversation transcript and `sendUserMessage` |
+| `useAgentMode` | Listening/thinking/speaking mode tracking |
+| `useAgentConversation` | Conversation transcript plus user and agent messages |
 | `useAgentMicrophone` | Mic state, mute controls, input volume |
 | `useAgentPlayer` | Audio playback state, mute controls, output volume |
-| `useAgentControls` | Stable action methods (never change identity) |
+| `useAgentControls` | Grouped lifecycle, messaging, settings, and mute controls |
 | `useAgentClientTool` | Register client-side function call handlers scoped to component lifecycle |
 | `useAgentSession` | Direct access to the underlying `AgentSession` (escape hatch) |
 | `useDeepgramAgent` | Standalone hook -- no provider needed |
@@ -81,7 +90,7 @@ See the [package README](packages/react/README.md) for full API documentation.
 
 **Prerequisites:** [Bun](https://bun.sh/) 1.3+
 
-This package depends on `@deepgram/agents` via a `file:` pointer. Clone the agent repo as a sibling:
+The published package depends on the npm release of `@deepgram/agents`. For coordinated local development, you can optionally clone a sibling checkout; this repository's TypeScript config uses it when present and otherwise resolves the npm package:
 
 ```bash
 git clone git@github.com:deepgram/agent.git ../agent

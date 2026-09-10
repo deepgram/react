@@ -18,7 +18,7 @@ import type { FunctionCallItem } from "@deepgram/agents";
  *   });
  *
  *   useAgentClientTool("setLocation", (fn) => {
- *     const params = JSON.parse(fn.input);
+ *     const params = JSON.parse(fn.arguments);
  *     setLocation(params);
  *     return JSON.stringify({ ok: true });
  *   });
@@ -31,11 +31,10 @@ export function useAgentClientTool(
   name: string,
   handler: (fn: FunctionCallItem) => Promise<string> | string,
 ): void {
-  const { registerClientTool, unregisterClientTool } = useAgentContext();
+  const { registerClientTool } = useAgentContext();
 
   useEffect(() => {
-    registerClientTool(name, handler);
-    return () => unregisterClientTool(name);
+    return registerClientTool(name, handler);
     // Re-register when handler changes to pick up latest closure
-  }, [name, handler, registerClientTool, unregisterClientTool]);
+  }, [name, handler, registerClientTool]);
 }

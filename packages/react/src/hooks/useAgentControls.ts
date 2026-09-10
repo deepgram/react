@@ -1,27 +1,40 @@
 import { useAgentContext } from "../context.js";
+import type {
+  AgentMessageBehavior,
+  ListenSettings,
+  SpeakSettings,
+  ThinkSettings,
+} from "@deepgram/agents";
 
 export interface UseAgentControlsResult {
   start: () => Promise<void>;
   stop: () => void;
   sendUserMessage: (text: string) => void;
+  sendAgentMessage: (message: string, behavior?: AgentMessageBehavior) => void;
+  updateListen: (listen: ListenSettings) => void;
+  updateThink: (think: ThinkSettings | ThinkSettings[]) => void;
+  updateSpeak: (speak: SpeakSettings | SpeakSettings[]) => void;
+  updatePrompt: (prompt: string) => void;
   clearConversation: () => void;
   setMicMuted: (muted: boolean) => void;
   setOutputMuted: (muted: boolean) => void;
 }
 
 /**
- * Stable action methods — all are useCallback-wrapped refs that never
- * change identity. Components using only this hook will never re-render
- * due to state changes.
- *
- * Use this in components that trigger actions but don't display state
- * (e.g. a custom "mute all" button).
+ * Agent action methods grouped for components that trigger controls. This
+ * hook consumes AgentContext, so its component still re-renders when the
+ * provider value changes.
  */
 export function useAgentControls(): UseAgentControlsResult {
   const {
     start,
     stop,
     sendUserMessage,
+    sendAgentMessage,
+    updateListen,
+    updateThink,
+    updateSpeak,
+    updatePrompt,
     clearConversation,
     setMicMuted,
     setOutputMuted,
@@ -31,6 +44,11 @@ export function useAgentControls(): UseAgentControlsResult {
     start,
     stop,
     sendUserMessage,
+    sendAgentMessage,
+    updateListen,
+    updateThink,
+    updateSpeak,
+    updatePrompt,
     clearConversation,
     setMicMuted,
     setOutputMuted,
