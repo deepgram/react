@@ -70,7 +70,7 @@ function VoiceAgent() {
 | `useAgentSession` | Direct access to the underlying `AgentSession` (escape hatch) |
 | `useDeepgramAgent` | Standalone hook -- no provider needed |
 
-See the [package README](packages/react/README.md) for full API documentation.
+See the [package README](packages/react/README.md) for full API documentation. See the [migration guide](MIGRATION.md) when upgrading from 0.1 to 0.2.
 
 ## Related Packages
 
@@ -84,6 +84,7 @@ See the [package README](packages/react/README.md) for full API documentation.
 
 - [Deepgram Voice Agent docs](https://developers.deepgram.com/docs/voice-agent)
 - [API reference](https://developers.deepgram.com/reference)
+- [Migration guide](MIGRATION.md)
 - [`@deepgram/ui` -- pre-built components](https://github.com/deepgram/ui)
 
 ## Development
