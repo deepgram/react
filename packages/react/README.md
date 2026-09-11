@@ -4,6 +4,10 @@ React provider and hooks for the [Deepgram Voice Agent API](https://developers.d
 
 For pre-built UI components, see [`@deepgram/ui`](https://github.com/deepgram/ui).
 
+## Status
+
+This package is pre-1.0. Interfaces may change between minor versions.
+
 ## Install
 
 ```bash
